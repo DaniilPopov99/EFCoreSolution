@@ -8,13 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
 
-var companiesConnectionString = builder.Configuration.GetConnectionString("CompaniesConnection");
-var organizationsConnectionString = builder.Configuration.GetConnectionString("OrganizationsConnection");
-
-builder.Services.AddCompaniesRepositories(companiesConnectionString);
-builder.Services.AddOrganizationsRepositories(organizationsConnectionString);
-
-builder.Services.AddLogic();
+builder.Services.AddIoC(builder.Configuration);
 
 var app = builder.Build();
 

@@ -1,11 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GenericRepository.Contexts;
+using GenericRepository.Repositories.Implementations;
+using GenericRepository.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using UoW.Contexts;
-using UoW.Implementations;
-using UoW.Interfaces;
-using UoW.Repositories.Implementations;
-using UoW.Repositories.Interfaces;
 
 namespace UoW.Extensions
 {
@@ -18,7 +16,6 @@ namespace UoW.Extensions
 
             services.AddCompaniesRepositories(companiesConnectionString);
             services.AddOrganizationsRepositories(organizationsConnectionString);
-            services.AddLogic();
 
             return services;
         }
@@ -42,14 +39,6 @@ namespace UoW.Extensions
             services.AddScoped<IAddressesRepository, AddressesRepository>();
             services.AddScoped<IEmailsRepository, EmailsRepository>();
 
-            return services;
-        }
-
-        private static IServiceCollection AddLogic(this IServiceCollection services)
-        {
-            services.AddScoped<IAmbientUnitOfWork, AmbientUnitOfWork>();
-            services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
-            
             return services;
         }
     }
