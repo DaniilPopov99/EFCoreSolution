@@ -1,4 +1,5 @@
-﻿using GenericRepository.Models.CompanyEntities;
+﻿using GenericRepository.Contexts;
+using GenericRepository.Models.CompanyEntities;
 using GenericRepository.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,12 +11,16 @@ namespace Web.API.Controllers
         private readonly ICompaniesRepository _companiesRepository;
         private readonly IAddressesRepository _addressesRepository;
 
+        private readonly CompaniesContext _companiesContext;
+
         public CompanyController(
             ICompaniesRepository companiesRepository,
-            IAddressesRepository addressesRepository)
+            IAddressesRepository addressesRepository,
+            CompaniesContext companiesContext)
         {
             _companiesRepository = companiesRepository;
             _addressesRepository = addressesRepository;
+            _companiesContext = companiesContext;
         }
 
         #region Post
@@ -42,17 +47,34 @@ namespace Web.API.Controllers
                 Name = $"New{id}"
             };
 
-            _companiesRepository.Add(a);
-            await _companiesRepository.SaveChangesAsync(false);
-            var all1 = _companiesRepository.GetAll();
+            using var transaction = _companiesContext.Database.BeginTransaction();
 
-            _companiesRepository.Add(b);
-            await _companiesRepository.SaveChangesAsync(false);
-            var all2 = _companiesRepository.GetAll();
+            try
+            {
+                _companiesRepository.Add(a);
+                await _companiesRepository.SaveChangesAsync();
 
-            _companiesRepository.Add(c);
-            await _companiesRepository.SaveChangesAsync();
-            var all3 = _companiesRepository.GetAll();
+                var all = _companiesRepository.GetAll();
+                var last1 = all.OrderBy(o => o.Id).Last();
+
+                _companiesRepository.Add(b);
+                await _companiesRepository.SaveChangesAsync();
+
+                var last2 = all.OrderBy(o => o.Id).Last();
+
+                _companiesRepository.Add(c);
+                await _companiesRepository.SaveChangesAsync();
+
+                var last3 = all.OrderBy(o => o.Id).Last();
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+
+                throw;
+            }
 
             return Ok();
         }
